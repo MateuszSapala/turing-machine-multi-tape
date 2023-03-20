@@ -1,4 +1,3 @@
-import org.junit.Ignore
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.function.Executable
@@ -10,26 +9,19 @@ import java.util.stream.Stream
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class TuringTest {
+    companion object {
+        val ACCEPTED = listOf(1, 4, 9, 16, 25, 36, 49, 64, 81, 100)
+    }
+
     @ParameterizedTest
     @MethodSource("testCheckIfNumberIsPowerOfNumberData")
     fun testCheckIfNumberIsPowerOfNumber(number: Int) {
         assertDoesNotThrow(Exec(number))
     }
 
-    private fun testCheckIfNumberIsPowerOfNumberData(): Stream<Arguments?>? {
-        return Stream.of(
-            Arguments.of(1),
-            Arguments.of(4),
-            Arguments.of(9),
-            Arguments.of(16),
-            Arguments.of(25),
-            Arguments.of(36),
-            Arguments.of(49),
-            Arguments.of(64),
-            Arguments.of(81),
-            Arguments.of(100),
-        )
-    }
+    private fun testCheckIfNumberIsPowerOfNumberData(): Stream<Arguments> = ACCEPTED
+        .map { Arguments.of(it) }
+        .stream()
 
     @ParameterizedTest
     @MethodSource("testCheckIfNumberIsPowerOfNumberThrowData")
@@ -37,20 +29,11 @@ internal class TuringTest {
         assertThrows(IllegalArgumentException().javaClass, Exec(number))
     }
 
-    private fun testCheckIfNumberIsPowerOfNumberThrowData(): Stream<Arguments?>? {
-        return Stream.of(
-            Arguments.of(0),
-            Arguments.of(2),
-            Arguments.of(3),
-            Arguments.of(5),
-            Arguments.of(6),
-            Arguments.of(7),
-            Arguments.of(8),
-            Arguments.of(10),
-            Arguments.of(44),
-            Arguments.of(99),
-        )
-    }
+    private fun testCheckIfNumberIsPowerOfNumberThrowData(): Stream<Arguments> = IntArray(100) { it }
+        .toList()
+        .filter { !ACCEPTED.contains(it) }
+        .map { Arguments.of(it) }
+        .stream()
 
     private class Exec(val number: Int) : Executable {
         override fun execute() {

@@ -2,8 +2,8 @@ package pl.lodz.uni.project1.turing
 
 import pl.lodz.uni.project1.turing.Move.*
 import pl.lodz.uni.project1.turing.State.*
-import pl.lodz.uni.project1.turing.Value.A
-import pl.lodz.uni.project1.turing.Value.EMPTY
+import pl.lodz.uni.project1.turing.Value.*
+import kotlin.math.sqrt
 
 class Turing private constructor(
     private val tapes: Array<Array<Value>>,
@@ -13,24 +13,26 @@ class Turing private constructor(
 ) {
     companion object {
         operator fun invoke(number: Int): Turing {
-            val array = Array(4) { Array(number * 3 + 2) { EMPTY } }
-            for (i in number until number * 2) {
-                array[0][i] = A
-            }
-            return Turing(array, intArrayOf(number, number, number, number), S0);
+            val a1 = Array(number + 2) { A }
+            a1[0] = EMPTY
+            a1[a1.lastIndex] = EMPTY
+            val tapesSize = sqrt(number.toDouble()).toInt() + 3
+            val a2 = Array(tapesSize) { EMPTY }
+            val a3 = a2.copyOf()
+            return Turing(arrayOf(a1, a2, a3), intArrayOf(1, tapesSize - 2, tapesSize - 2), S0);
         }
     }
 
     private var currentValues: TapeValues
         get() {
             val values = TapeValues()
-            for (i in 0..3) {
+            for (i in tapes.indices) {
                 values.array[i] = tapes[i][indexes[i]]
             }
             return values
         }
         set(values) {
-            for (i in 0..3) {
+            for (i in tapes.indices) {
                 tapes[i][indexes[i]] = values.array[i]
             }
         }
@@ -45,69 +47,39 @@ class Turing private constructor(
             when (state) {
                 S0 -> {
                     when (currentValues) {
-                        TapeValues(A, EMPTY, EMPTY, EMPTY) -> next(S1, TapeValues(A, A, A, EMPTY), arrayOf(S, S, S, S))
+                        TapeValues(A, EMPTY, EMPTY) -> next(S1, TapeValues(A, A, A), arrayOf(S, S, S))
                         else -> throwBadArgument()
                     }
                 }
 
                 S1 -> {
                     when (currentValues) {
-                        TapeValues(A, A, A, EMPTY) -> next(S2, TapeValues(A, A, A, A), arrayOf(S, S, R, R))
+                        TapeValues(A, A, A) -> next(S1, TapeValues(B, A, A), arrayOf(R, S, R))
+                        TapeValues(A, A, EMPTY) -> next(S2, TapeValues(A, A, EMPTY), arrayOf(S, R, L))
+                        TapeValues(EMPTY, A, EMPTY) -> next(S2, TapeValues(EMPTY, A, EMPTY), arrayOf(S, R, L))
+                        TapeValues(A, EMPTY, A) -> next(S3, TapeValues(A, EMPTY, A), arrayOf(L, L, L))
+                        TapeValues(EMPTY, EMPTY, A) -> next(Sk, TapeValues(EMPTY, EMPTY, A), arrayOf(S, S, S))
                         else -> throwBadArgument()
                     }
                 }
 
                 S2 -> {
                     when (currentValues) {
-                        TapeValues(A, A, A, EMPTY) -> next(S2, TapeValues(A, A, A, A), arrayOf(S, S, R, R))
-                        TapeValues(A, A, EMPTY, EMPTY) -> next(S3, TapeValues(A, A, EMPTY, EMPTY), arrayOf(S, R, L, S))
-                        TapeValues(A, EMPTY, A, EMPTY) -> next(S4, TapeValues(A, EMPTY, A, EMPTY), arrayOf(S, L, S, L))
+                        TapeValues(A, A, A) -> next(S2, TapeValues(B, A, A), arrayOf(R, S, L))
+                        TapeValues(A, A, EMPTY) -> next(S1, TapeValues(A, A, EMPTY), arrayOf(S, R, R))
+                        TapeValues(EMPTY, A, EMPTY) -> next(S1, TapeValues(EMPTY, A, EMPTY), arrayOf(S, R, R))
+                        TapeValues(A, EMPTY, A) -> next(S3, TapeValues(A, EMPTY, A), arrayOf(L, L, L))
+                        TapeValues(EMPTY, EMPTY, A) -> next(Sk, TapeValues(EMPTY, EMPTY, A), arrayOf(S, S, S))
                         else -> throwBadArgument()
                     }
                 }
 
                 S3 -> {
                     when (currentValues) {
-                        TapeValues(A, A, A, EMPTY) -> next(S3, TapeValues(A, A, A, A), arrayOf(S, S, L, R))
-                        TapeValues(A, A, EMPTY, EMPTY) -> next(S2, TapeValues(A, A, EMPTY, EMPTY), arrayOf(S, R, R, S))
-                        TapeValues(A, EMPTY, A, EMPTY) -> next(S4, TapeValues(A, EMPTY, A, EMPTY), arrayOf(S, L, S, L))
-                        else -> throwBadArgument()
-                    }
-                }
-
-                S4 -> {
-                    when (currentValues) {
-                        TapeValues(A, A, A, A) -> next(S4, TapeValues(A, A, A, EMPTY), arrayOf(R, L, L, L))
-                        TapeValues(A, A, EMPTY, A) -> next(S4, TapeValues(A, A, EMPTY, EMPTY), arrayOf(R, L, S, L))
-                        TapeValues(A, EMPTY, A, A) -> next(S4, TapeValues(A, EMPTY, A, EMPTY), arrayOf(R, S, L, L))
-                        TapeValues(A, EMPTY, EMPTY, A) -> next(
-                            S4,
-                            TapeValues(A, EMPTY, EMPTY, EMPTY),
-                            arrayOf(R, S, S, L)
-                        )
-
-                        TapeValues(A, EMPTY, EMPTY, EMPTY) -> next(S5, TapeValues(A, A, A, EMPTY), arrayOf(L, S, S, S))
-                        TapeValues(EMPTY, EMPTY, EMPTY, EMPTY) -> next(
-                            Sk,
-                            TapeValues(EMPTY, EMPTY, EMPTY, EMPTY),
-                            arrayOf(S, S, S, S)
-                        )
-
-                        else -> throwBadArgument()
-                    }
-                }
-
-                S5 -> {
-                    when (currentValues) {
-                        TapeValues(A, A, A, EMPTY) -> next(S6, TapeValues(A, A, A, EMPTY), arrayOf(L, S, S, S))
-                        else -> throwBadArgument()
-                    }
-                }
-
-                S6 -> {
-                    when (currentValues) {
-                        TapeValues(A, A, A, EMPTY) -> next(S6, TapeValues(A, A, A, EMPTY), arrayOf(L, S, S, S))
-                        TapeValues(EMPTY, A, A, EMPTY) -> next(S2, TapeValues(EMPTY, A, A, EMPTY), arrayOf(R, S, S, S))
+                        TapeValues(B, A, A) -> next(S3, TapeValues(A, A, A), arrayOf(L, L, L))
+                        TapeValues(B, A, EMPTY) -> next(S3, TapeValues(A, A, EMPTY), arrayOf(L, L, S))
+                        TapeValues(B, EMPTY, EMPTY) -> next(S3, TapeValues(A, EMPTY, EMPTY), arrayOf(L, S, S))
+                        TapeValues(EMPTY, EMPTY, EMPTY) -> next(S1, TapeValues(EMPTY, A, A), arrayOf(R, S, S))
                         else -> throwBadArgument()
                     }
                 }
@@ -125,29 +97,29 @@ class Turing private constructor(
     ) {
         val c = currentValues
         println(
-            "$iteration:\t(${state.value},${c.array[0].value},${c.array[1].value},${c.array[2].value},${c.array[3].value})->" +
-                    "(${newState.value},${newValues.array[0].value},${newValues.array[1].value},${newValues.array[2].value},${newValues.array[3].value}," +
-                    "${moves[0].string},${moves[1].string},${moves[2].string},${moves[3].string})"
+            "$iteration:\t(${state.value},${c.array[0].value},${c.array[1].value},${c.array[2].value})->" +
+                    "(${newState.value},${newValues.array[0].value},${newValues.array[1].value},${newValues.array[2].value}," +
+                    "${moves[0].string},${moves[1].string},${moves[2].string})"
         )
         println("$this")
         iteration++
         state = newState
         currentValues = newValues
-        for (i in 0..3) {
+        for (i in tapes.indices) {
             indexes[i] = indexes[i] + moves[i].value
         }
     }
 
     override fun toString(): String {
         var s = ""
-        for (i in 0..3) {
+        for (i in tapes.indices) {
             for (j in tapes[i].indices) {
                 if (j == indexes[i]) {
                     s += "($state)"
                 }
                 s += tapes[i][j].value
             }
-            if (i != 3) s += "\n"
+            if (i != tapes.lastIndex) s += "\n"
         }
         return s
     }
