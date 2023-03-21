@@ -10,7 +10,7 @@ import java.util.stream.Stream
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class TuringTest {
     companion object {
-        val ACCEPTED = listOf(1, 4, 9, 16, 25, 36, 49, 64, 81, 100)
+        val ACCEPTED = listOf(2,4,8,16,32,64)
     }
 
     @ParameterizedTest
